@@ -3,7 +3,7 @@ import numpy as np
 import cv2
 from matplotlib import pyplot as plt
 
-img = cv2.imread('../img/lenna_grey.png', 0)
+img = cv2.imread('image/Lenna.png', 0)
 cv2.imshow('original', img)
 rows, cols = img.shape
 print (rows, cols)

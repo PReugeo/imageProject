@@ -1,10 +1,10 @@
 import cv2
 import numpy as np
 
-img = cv2.imread('../img/Lenna_grey.png')
+img = cv2.imread('image/Lenna.png')
 
 ret, thresh = cv2.threshold(cv2.cvtColor(img, cv2.COLOR_BGR2GRAY), 127, 255, 0)
-
+# 找到轮廓
 contours, hierarchy = cv2.findContours(thresh, cv2.RETR_TREE, cv2.CHAIN_APPROX_NONE)
 cnt = contours[0] # 取第一条轮廓
 M = cv2.moments(cnt)
