@@ -7,6 +7,10 @@ img = cv2.imread('image/Lenna.png', 0)
 cv2.imshow('original', img)
 rows, cols = img.shape
 print (rows, cols)
+# 图像总像素点数量
+pix_num  = rows * cols
+# 统计每个像素值的像素点的数量 ex： 灰度等级为 200的像素点一共有 30个 则 pix_count_list[200] = 30
+# pix_count_list = list[256]
 
 # img = np.array(img)
 # 使用 np.amin   np.amax 获得图像(二维数组)中的最大、最小值
