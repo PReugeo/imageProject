@@ -22,7 +22,6 @@ def glcm(src, d_x, d_y, gray_level=16):
     max_level = src.max()
     if max_level > gray_level:
         src = src * (gray_level - 1) // max_level
-
     # 计算灰度共生矩阵
     for j in range(h - abs(d_y)):
         for i in range(w - abs(d_x)):
