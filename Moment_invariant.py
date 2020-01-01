@@ -31,10 +31,122 @@ import numpy as np
 #     hu[4] = q0 * t0 + q1 * t1;
 #     hu[6] = q1 * t0 - q0 * t1;
 # }
+def get_moments(img,moments=None):
+    # row == heigh == Point.y
+    # col == width == Point.x
+    # Mat::at(Point(x, y)) == Mat::at(y,x)
+    # https://blog.csdn.net/puqian13/article/details/87937483
+    mom = [0] * 10
+    umom = [0] * 7
+    numom = [0] * 7
+    rows, cols = img.shape
+    for y in range (0,rows):
+        # temp var
+        x0 = 0
+        x1 = 0
+        x2 = 0
+        x3 = 0
+        for x in range(0,cols):
+            p = img[y,x]
+            xp = x * p
+            xxp = x * xp
+            x0 = x0 + p
+            x1 = x1 + xp
+            x2 = x2 + xxp
+            x3 = x3 + xxp * x
+        py = y * x0
+        sy = y*y
+        mom[9] += (py) * sy # m03
+        mom[8] += (x1) * sy # m12
+        mom[7] += (x2) * y # m21
+        mom[6] += x3 # m30
+        mom[5] += x0 * sy # m02
+        mom[4] += x1 * y # m11
+        mom[3] += x2 # m20
+        mom[2] += py # m01
+        mom[1] += x1 # m10
+        mom[0] += x0 # m00
+    x_a = mom[1] / mom[0]
+    y_a = mom[2] / mom[0]
+    for y in range(0,rows):
+        x_a_0 = 0
+        x_a_1 = 0
+        x_a_2 = 0
+        x_a_3 = 0
+        for x in range(0,cols):
+            p = img[y,x]
+            x_a_0 = x_a_0 +  p
+            x_a_1 += p * (x - x_a )
+            x_a_2 += x_a_1 * (x - x_a )
+            x_a_3 += x_a_2 *  (x - x_a )
+        y_a_1 =  (y - y_a)
+        y_a_2  = y_a_1 * (y - y_a)
+        y_a_3  = y_a_2 * (y - y_a)
+        umom[0] += x_a_2
+        umom[1] += x_a_1 * y_a_1
+        umom[2] += x_a_0 * y_a_2
+        umom[3] += x_a_3
+        umom[4] += x_a_2 * y_a_1
+        umom[5] += x_a_1 * y_a_2
+        umom[6] += x_a_0 * y_a_3
+
+    cx = mom[1] * 1.0 / mom[0]
+    cy = mom[2] * 1.0 / mom[0]
+
+    umom[0] = mom[3] - mom[1] * cx
+    umom[1] = mom[4] - mom[1] * cy
+    umom[2] = mom[5] - mom[2] * cy
+
+    umom[3] = mom[6] - cx * (3 * umom[0] + cx * mom[1])
+    umom[4] = mom[7] - cx * (2 * umom[1] + cx * mom[2]) - cy * umom[0]
+    umom[5] = mom[8] - cy * (2 * umom[1] + cy * mom[1]) - cx * umom[2]
+    umom[6] = mom[9] - cy * (3 * umom[2] + cy * mom[2])
+    #  nu
+    inv_sqrt_m00 = np.sqrt(abs(1.0 / mom[0]))
+    s2 = (1.0 / mom[0]) * (1.0 / mom[0])
+    s3 = s2 * inv_sqrt_m00
+    numom[0] = umom[0] * s2
+    numom[1] = umom[1] * s2
+    numom[2] = umom[2] * s2
+    numom[3] = umom[3] * s3
+    numom[4] = umom[4] * s3
+    numom[5] = umom[5] * s3
+    numom[6] = umom[6] * s3
+    moments = mom + umom + numom
+    return moments
+
+def get_hu_moments(numom):
+    hu = [0]*7
+    t0 = numom[3] + numom[5]
+    t1 = numom[4] + numom[6]
+
+    q0 = t0 * t0
+    q1 = t1 * t1
+
+    n4 = 4 * numom[1];
+    s = numom[0] + numom[2];
+    d = numom[0] - numom[2];
+
+    hu[0] = s
+    hu[1] = d * d + n4 * numom[1]
+    hu[3] = q0 + q1
+    hu[5] = d * (q0 - q1) + n4 * t0 * t1
+    t0 *= q0 - 3 * q1
+    t1 *= 3 * q0 - q1
+
+    q0 = numom[3] - 3 * numom[5]
+    q1 = 3 * numom[4]  - numom[6] ;
+
+    hu[2] = q0 * q0 + q1 * q1
+    hu[4] = q0 * t0 + q1 * t1
+    hu[6] = q1 * t0 - q0 * t1
+    return hu
+
+
 if __name__ == "__main__":
     input_image = cv2.imread("image/lungs.jpg",0)
     # cut 1/4 image
-
+    save_image = 0
     new_image = input_image[0:int(input_image.shape[0]/2),0:int(input_image.shape[1]/2)]
     print("new image size",new_image.shape)
     # https://docs.opencv.org/3.4/da/d54/group__imgproc__transform.html#gafbbc470ce83812914a70abfb604f4326
@@ -73,6 +185,12 @@ if __name__ == "__main__":
     # https://github.com/opencv/opencv/blob/b6a58818bb6b30a1f9d982b3f3f53228ea5a13c1/modules/imgproc/src/moments.cpp
     m_ = cv2.moments(new_image)
     hu = cv2.HuMoments(m_)
+
+    m_self = get_moments(new_image)
+    hu_ = get_hu_moments(m_self[-7:])
+    print("new image hu ", hu)
+
+    print("new image hu_ ",hu_)
 
     m_45 = cv2.moments(rotate_45_image)
     hu_45 = cv2.HuMoments(m_45)
@@ -115,7 +233,15 @@ if __name__ == "__main__":
     print("hu_normal_matrix",hu_list)
 
     # cv2.imshow("input_image",input_image)
-    cv2.imshow("cut_image", new_image)
+    if(save_image):
+        cv2.imwrite("image/moments_result/input_image.png",new_image)
+        cv2.imwrite("image/moments_result/rotate_90_iamge.png",rotate_90_iamge)
+        cv2.imwrite("image/moments_result/rotate_180_iamge.png",rotate_180_iamge)
+        cv2.imwrite("image/moments_result/rotate_270_image.png",rotate_270_image)
+        cv2.imwrite("image/moments_result/rotate_45_image.png",rotate_45_image)
+        cv2.imwrite("image/moments_result/panning_15_pix_iamge.png",panning_15_pix_iamge)
+        cv2.imwrite("image/moments_result/resize_0_5_img.png",resize_0_5_img)
+        cv2.imshow("cut_image", new_image)
     cv2.imshow("rotate 180", rotate_180_iamge)
     cv2.imshow("rotate 270", rotate_270_image)
     # cv2.imshow("rotate 90",rotate_90_iamge)
@@ -124,4 +250,4 @@ if __name__ == "__main__":
     # cv2.imshow("resize 1/2 image",resize_0_5_img)
 
 
-    cv2.waitKey(0000)
+    cv2.waitKey(10000)
