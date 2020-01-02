@@ -1,5 +1,24 @@
+difrent_image_moments_invariant.py
+这是类间 不同图像的 不变矩计算 
+Moment_invariant.py
+类内图像的旋转 缩放 平移 不变矩计算
+代码说明：
+
+1. ##### 计算不变矩首先要计算图像的归一化中心距 python opencv 函数 cv2.moments(img) 自己实现（copy 源码。。。。）函数：get_moments（img）前者结果是一个keymap 24个元素 分别是 [opencv moments成员变量](https://docs.opencv.org/3.4/d8/d23/classcv_1_1Moments.html)后者是一个list 也是24个 分布式  原点矩 0 阶：1个； 1阶：2个； 2阶：3个； 三阶：4 个； 中心矩阵只有七个 2阶：3个；三阶4个；归一化中心矩 二阶 3个 ；三阶 4个；后面两个少了是因为少的那些为0了 具体看上面的链接
+
+2.  拿到上面的各种矩 之后计算HU不变矩 opencv函数 cv2.HuMoments(moments) 参数是 上一步的24个矩 自己。。实现。。：get_hu_moments(numom) 参数是归一化中心矩 只有七个 一个list作为输入
+
+3. 然后没了 hu不变矩阵的公式如下：参考[opencv hu Moments 说明](https://docs.opencv.org/4.1.2/d3/dc0/group__imgproc__shape.html#gab001db45c1f1af6cbdbe64df04c4e944)
 
 
+
+$$hu[0]= \eta _{20}+ \eta _{02} \\
+ hu[1]=( \eta _{20}- \eta _{02})^{2}+4 \eta _{11}^{2} \\
+  hu[2]=( \eta _{30}-3 \eta _{12})^{2}+ (3 \eta _{21}- \eta _{03})^{2} 
+  \\   hu[3]=( \eta _{30}+ \eta _{12})^{2}+ ( \eta _{21}+ \eta _{03})^{2} 
+  \\  hu[4]=( \eta _{30}-3 \eta _{12})( \eta _{30}+ \eta _{12})[( \eta _{30}+ \eta _{12})^{2}-3( \eta _{21}+ \eta _{03})^{2}]+(3 \eta _{21}- \eta _{03})( \eta _{21}+ \eta _{03})[3( \eta _{30}+ \eta _{12})^{2}-( \eta _{21}+ \eta _{03})^{2}] 
+  \\ hu[5]=( \eta _{20}- \eta _{02})[( \eta _{30}+ \eta _{12})^{2}- ( \eta _{21}+ \eta _{03})^{2}]+4 \eta _{11}( \eta _{30}+ \eta _{12})( \eta _{21}+ \eta _{03}) 
+  \\ hu[6]=(3 \eta _{21}- \eta _{03})( \eta _{21}+ \eta _{03})[3( \eta _{30}+ \eta _{12})^{2}-( \eta _{21}+ \eta _{03})^{2}]-( \eta _{30}-3 \eta _{12})( \eta _{21}+ \eta _{03})[3( \eta _{30}+ \eta _{12})^{2}-( \eta _{21}+ \eta _{03})^{2}] \\$$
 result
 
 原图
@@ -13,14 +32,14 @@ result
 
 
 <figure class="third">
-     <img src = "image/moments_result/rotate_90_iamge.png"    title = "旋转90度"    width = "200"    hight = 200>
-    <img  src = "image/moments_result/rotate_180_iamge.png"    title = "旋转180度"    width = "200"    hight = 200>
+     <img src = "image/moments_result/rotate_90_iamge.png"    title = "旋转90度"    width = "100"    hight = 200>
+    <img  src = "image/moments_result/rotate_180_iamge.png"    title = "旋转180度"    width = "150"    hight = 200>
     <img  src = "image/moments_result/panning_15_pix_iamge.png"    title = "平移"    width = "200"    hight = 200>
 </figure>
 
 
 
-
+同一个图片 不同处理
 
 | 不变矩 | 原图        | 一半尺寸    | 旋转45度    | 旋转90度    | 旋转180度   | 列平移50像素 行平移15像素 |
 | ------ | ----------- | ----------- | ----------- | ----------- | ----------- | ------------------------- |
@@ -33,6 +52,27 @@ result
 | 7      | 53.95380994 | 57.17403697 | 53.09311138 | 53.95380994 | 53.95380994 | 54.74313246               |
 
 
+
+
+
+<figure class="fourth">
+     <img src = "image/winter_0.png"    title = "旋转90度"    width = "200"    hight = 200>
+    <img  src = "image/winter_85.png"    title = "旋转180度"    width = "200"    hight = 200>
+    <img  src = "image/summer_0.png"    title = "平移"    width = "200"    hight = 200>
+    <img  src = "image/summer_357.png"    title = "平移"    width = "200"    hight = 200>
+</figure>
+
+不同的图片
+
+| 不变矩 | Winter_0    | Summer_0    | summer_357  | Winter_85   |
+| ------ | ----------- | ----------- | ----------- | ----------- |
+| 1      | 6.06E+00    | 6.21279822  | 6.41897124  | 6.06223521  |
+| 2      | 13.97355341 | 13.54897708 | 14.32848396 | 14.0651294  |
+| 3      | 25.49413374 | 23.67728933 | 23.65970171 | 25.02867178 |
+| 4      | 22.85900303 | 21.49827435 | 22.39041427 | 24.1427005  |
+| 5      | 49.20278733 | 46.18844503 | 45.41641548 | 49.41575619 |
+| 6      | 29.88113698 | 28.70095592 | 30.21606721 | 31.48431494 |
+| 7      | 47.04216941 | 44.09357449 | 48.55247541 | 48.87416848 |
 
 
 
