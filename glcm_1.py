@@ -22,12 +22,21 @@ def glcm(src, d_x, d_y, gray_level=16):
     max_level = src.max()
     if max_level > gray_level:
         src = src * (gray_level - 1) // max_level
+
     # 计算灰度共生矩阵
     for j in range(h - abs(d_y)):
         for i in range(w - abs(d_x)):
             rows = src[j][i].astype(int)
             cols = src[j + d_y][i + d_x].astype(int)
             glcm[rows][cols] += 1
+
+    # 归一化灰度共生矩阵
+    if d_x >= d_y:
+        # 水平/垂直方向
+        glcm = glcm / float(h * (w - 1))
+    else:
+        # 45/135
+        glcm = glcm / float((h - 1) * (w - 1))
 
     return glcm
 
@@ -36,13 +45,13 @@ def glcm_features(src, d_x=1, d_y=0, gray_level=16):
     h, w = src.shape
     glcm_0 = glcm(src, d_x, d_y, gray_level)
     # 对比度
-    contrast = np.zeros((h, w), dtype=np.float64)
+    contrast = 0.0
     # 能量
-    asm = np.zeros((h, w), dtype=np.float64)
+    asm = 0.0
     # 熵值
-    entropy = np.zeros((h, w), dtype=np.float64)
+    entropy = 0.0
     # 均值
-    mean = np.zeros((h, w), dtype=np.float64)
+    mean = 0.0
 
     for i in range(gray_level):
         for j in range(gray_level):
@@ -56,39 +65,20 @@ def glcm_features(src, d_x=1, d_y=0, gray_level=16):
   
 
 if __name__ == '__main__':
-    img = cv2.imread(r'../img/Lenna.png')
+    img = cv2.imread(r'image/Fig0207(2Dsinewave).tif')
     img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-    glcm_0 = glcm(img, -1, 1)
+    glcm_0 = glcm(img, 1, 0)
     cont, asm, ent, mean = glcm_features(img)
+
+    print('对比度:', cont)
+    print('角二阶矩:', asm)
+    print('熵值:', ent)
+    print('均值:', mean)
 
     plt.figure(figsize=(10, 4.5))
     fs = 15
-    plt.subplot(2, 5, 1)
     plt.tick_params(labelbottom=False, labelleft=False)
-    plt.imshow(img)
+    plt.imshow(glcm_0)
     plt.title('glcm', fontsize=fs)
-
-    plt.subplot(2, 5, 2)
-    plt.tick_params(labelbottom=False, labelleft=False)
-    plt.imshow(mean)
-    plt.title('mean', fontsize=fs)
-
-    plt.subplot(2, 5, 3)
-    plt.tick_params(labelbottom=False, labelleft=False)
-    plt.imshow(cont)
-    plt.title('contrast', fontsize=fs)
-
-    plt.subplot(2, 5, 4)
-    plt.tick_params(labelbottom=False, labelleft=False)
-    plt.imshow(asm)
-    plt.title('ASM', fontsize=fs)
-
-    plt.subplot(2, 5, 5)
-    plt.tick_params(labelbottom=False, labelleft=False)
-    plt.imshow(ent)
-    plt.title('entropy', fontsize=fs)
-
-    plt.tight_layout(pad=0.5)
-    # plt.savefig('img/output.jpg')
     plt.show()
 

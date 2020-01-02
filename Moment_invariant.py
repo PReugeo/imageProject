@@ -244,10 +244,10 @@ if __name__ == "__main__":
         cv2.imshow("cut_image", new_image)
     cv2.imshow("rotate 180", rotate_180_iamge)
     cv2.imshow("rotate 270", rotate_270_image)
-    # cv2.imshow("rotate 90",rotate_90_iamge)
-    # cv2.imshow("rotate 45 ", rotate_45_image)
-    # cv2.imshow("panning 15 pix ", panning_15_pix_iamge)
-    # cv2.imshow("resize 1/2 image",resize_0_5_img)
+    cv2.imshow("rotate 90",rotate_90_iamge)
+    cv2.imshow("rotate 45 ", rotate_45_image)
+    cv2.imshow("panning 15 pix ", panning_15_pix_iamge)
+    cv2.imshow("resize 1/2 image",resize_0_5_img)
 
 
     cv2.waitKey(10000)
